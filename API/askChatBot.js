@@ -1,5 +1,5 @@
 import { AskChatBot } from "../AI/askchatbot.js";
-import GroqModel from "../AI/models/chatbotModels.js";
+import GroqModel from "../models/chatbotModels.js";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import { Auth } from "../Utility/jwtToken.js";

@@ -1,4 +1,4 @@
-import GroqModel from "../AI/models/chatbotModels.js";
+import GroqModel from "../models/chatbotModels.js";
 import express from "express";
 
 const router = express.Router();

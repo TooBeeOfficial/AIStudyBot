@@ -1,6 +1,6 @@
 import { Groq } from 'groq-sdk';
 import dotenv from "dotenv";
-import GroqModel from './models/chatbotModels.js';
+import GroqModel from '../models/chatbotModels.js';
 dotenv.config({path:"./env/.env"});
 const groq = new Groq({apiKey:process.env.GROQ_API_KEY});
 

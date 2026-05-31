@@ -1,5 +1,5 @@
 import { AskChatBot } from "./AI/askchatbot.js"
-import GroqModel from "./AI/models/chatbotModels.js"
+import GroqModel from "./models/chatbotModels.js"
 import express from "express";
 import apiRoutes from "./API/askChatBot.js";
 import utilityRoutes from "./Utility/rateLimiter.js";

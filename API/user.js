@@ -3,6 +3,7 @@ import postgresSQL from "pg";
 import dotenv from "dotenv"
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
+import PublicUser from "../models/userModel.js";
 
 /* This file is use for user API endpoints
 *   
@@ -65,7 +66,7 @@ router.post("/signup", async (req,res)=>{
     }
 })
 
-router.post("/login", async (req, res) => {
+router.post("/signin", async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
@@ -84,9 +85,13 @@ router.post("/login", async (req, res) => {
             const token = jwt.sign(
                 { email },
                 process.env.JWT_SECRET,
-                { expiresIn: "30d" }
+                { expiresIn: "15m" }
             );
-            res.json({ token });
+            const publicUser = PublicUser.fromDbUser(user);
+            res.json({
+                token:token,
+                user:publicUser
+             });
         }else{
             res.status(500).json({ error: "Server error" });
         }
