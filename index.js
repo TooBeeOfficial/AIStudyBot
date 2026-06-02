@@ -12,6 +12,7 @@ import utilityRoutes from "./Utility/rateLimiter.js";
 import models from "./routes/getAllModels.js";
 import users from "./routes/user.js"
 import auth from "./routes/auth.js"
+import questions from "./routes/questions.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,7 @@ app.use("/api", apiRoutes);
 app.use("/api", models);
 app.use("/api", users);
 app.use("/api", auth);
+app.use("/api", questions);
 app.listen(process.env.PORT, () => { 
     console.log("Server running on port: ",process.env.PORT);
 });

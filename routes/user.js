@@ -22,7 +22,7 @@ export const pool = new Pool({
 const router = express.Router();
 router.use(express.json());
 
-router.get("/router/users", async (req, res) => {
+router.get("/users", async (req, res) => {
     try {
         const result = await pool.query(
             "SELECT * FROM users",
@@ -34,7 +34,7 @@ router.get("/router/users", async (req, res) => {
     }
 });
 
-router.get("/router/me", async (req, res) => {
+router.get("/me", async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
@@ -47,7 +47,7 @@ router.get("/router/me", async (req, res) => {
   }
 });
 
-router.post("/router/signup", async (req,res)=>{
+router.post("/signup", async (req,res)=>{
     try {
         const { email, password, name } = req.body;
         if (!email || !password || !name) {
@@ -69,7 +69,19 @@ router.post("/router/signup", async (req,res)=>{
                 "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, email",
                 [name, email, hashedPassword]
             );
-            res.status(201).json({ response: "User created sucsessfully." });
+            // 4. create JWT
+            const token = jwt.sign(
+                { id: user.id, email },
+                process.env.JWT_SECRET,
+                { expiresIn: "15m" }
+            );
+
+            // 5. return response
+            res.status(201).json({
+                message: "User created successfully",
+                token,
+                user,
+            });
         }
     } catch (error) {
         console.error(error);
@@ -79,7 +91,7 @@ router.post("/router/signup", async (req,res)=>{
     }
 })
 
-router.post("/router/signin", async (req, res) => {
+router.post("/signin", async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
@@ -96,7 +108,7 @@ router.post("/router/signin", async (req, res) => {
         const isValid = await bcrypt.compare(password, user.password);
         if(isValid){
             const token = jwt.sign(
-                { email },
+                { id: user.id, email },
                 process.env.JWT_SECRET,
                 { expiresIn: "15m" }
             );

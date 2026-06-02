@@ -14,7 +14,7 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.get("/router/login", (req, res) => {
+router.get("/login", (req, res) => {
   res.render("login");
 });
 
