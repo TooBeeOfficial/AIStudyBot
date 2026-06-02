@@ -53,4 +53,11 @@ export default class GroqModel {
             id: model.id,
         }));
     }
+
+    static getModelById(id) {
+        const model = GroqModel._getAllModels().find(m => m.id === id);
+        if (!model)
+            return GroqModel.LLAMA_31_8B_INSTANT;
+        return model;
+    }
 }

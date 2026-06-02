@@ -8,9 +8,9 @@ import PublicUser from "../models/userModel.js";
 /* This file is use for user API endpoints
 *   
 *   Endpoints:
-*   /api/users = All returns all users.
-*   /api/signup = Registers a user.
-*   /api/login = If user credentials are correct creates a JWToken.
+*   /api/router/users = All returns all users.
+*   /api/router/signup = Registers a user.
+*   /api/router/login = If user credentials are correct creates a JWToken.
 *
 */
 
@@ -22,7 +22,7 @@ export const pool = new Pool({
 const router = express.Router();
 router.use(express.json());
 
-router.get("/users", async (req, res) => {
+router.get("/router/users", async (req, res) => {
     try {
         const result = await pool.query(
             "SELECT * FROM users",
@@ -34,7 +34,20 @@ router.get("/users", async (req, res) => {
     }
 });
 
-router.post("/signup", async (req,res)=>{
+router.get("/router/me", async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    res.json(req.user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+router.post("/router/signup", async (req,res)=>{
     try {
         const { email, password, name } = req.body;
         if (!email || !password || !name) {
@@ -66,7 +79,7 @@ router.post("/signup", async (req,res)=>{
     }
 })
 
-router.post("/signin", async (req, res) => {
+router.post("/router/signin", async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
