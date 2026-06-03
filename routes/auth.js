@@ -19,7 +19,7 @@ export const pool = new Pool({
 const router = express.Router();
 
 router.post(
-    "/login/federated/google",
+    "/login/google",
     passport.authenticate("google")
 );
 
@@ -117,22 +117,6 @@ passport.use(new LocalStrategy(
         }                                                                                               
     }
 ))
-
-router.post(
-    "/oauth2/redirect/email",
-    passport.authenticate("local", {
-        successRedirect: "http://localhost:4000/logged-in",
-        failureRedirect: "http://localhost:4000/login-failed",
-    })
-);
-
-router.post(
-    "/oauth2/redirect/google",
-    passport.authenticate("google", {
-        successRedirect: "http://localhost:4000/logged-in",
-        failureRedirect: "http://localhost:4000/login-failed",
-    })
-);
 
 router.post("/logout", (req, res, next) => {
     req.logout(function (err) {

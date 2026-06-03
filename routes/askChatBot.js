@@ -12,16 +12,18 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 router.use(express.json());
-router.post("/chat", async (req, res) => {
+router.post("/chat", Auth, async (req, res) => {
     try {
         const message = req.body.message;
         const model = req.body.model;
+        const userId = req.user.id;
+        const { chatId } = req.query;
 
         const content = await AskChatBot(
             message,
             GroqModel.getModelById(model)
         );
-        saveQuizToDB(pool,1,1,content)
+        await saveQuizToDB(userId, chatId, content)
         res.json({ "Success": true, content });
     } catch (error) {
         console.error(error);
