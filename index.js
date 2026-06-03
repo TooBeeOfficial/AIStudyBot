@@ -18,7 +18,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
-
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
@@ -31,7 +30,7 @@ app.use(expressSession({
   saveUninitialized: false,
   store: new PgStore({ pool }),
 }));
-
+app.use(passport.authenticate('session'));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -42,6 +41,7 @@ app.use("/api", models);
 app.use("/api", users);
 app.use("/api", auth);
 app.use("/api", questions);
-app.listen(process.env.PORT, () => { 
+
+app.listen(process.env.PORT, () => {
     console.log("Server running on port: ",process.env.PORT);
 });

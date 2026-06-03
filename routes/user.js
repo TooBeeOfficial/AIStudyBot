@@ -80,7 +80,6 @@ router.post("/signup", async (req,res)=>{
             res.status(201).json({
                 message: "User created successfully",
                 token,
-                user,
             });
         }
     } catch (error) {
@@ -110,7 +109,7 @@ router.post("/signin", async (req, res) => {
             const token = jwt.sign(
                 { id: user.id, email },
                 process.env.JWT_SECRET,
-                { expiresIn: "15m" }
+                { expiresIn: "7d" }
             );
             const publicUser = PublicUser.fromDbUser(user);
             res.json({
