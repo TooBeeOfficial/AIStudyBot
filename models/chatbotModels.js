@@ -47,7 +47,7 @@ export default class GroqModel {
         ];
     }
 
-    static publicList(model){
+    static publicList(model) {
         return GroqModel._getAllModels().map(model => ({
             name: model.modelName,
             id: model.id,

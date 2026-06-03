@@ -9,9 +9,17 @@ const pool = new Pool(
     }
 )
 
-export async function saveQuizToDB(userId, chatId, quizJSON) {
+export async function saveQuizToDB(userId, chatId, quizJSON, message) {
     await pool.query("BEGIN");
     try {
+        await pool.query(
+            "INSERT INTO messages (chat_id, user_id, role, content) VALUES ($1, $2, $3, $4)",
+            [chatId, userId, "user", message]
+        )
+        await pool.query(
+            "INSERT INTO messages (chat_id, user_id, role, content) VALUES ($1, $2, $3, $4)",
+            [chatId, userId, "assistant", JSON.stringify(quizJSON)]
+        )
         for (const q of quizJSON.questions) {
             await pool.query("COMMIT");
             const questionResult = await pool.query(

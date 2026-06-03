@@ -165,4 +165,67 @@ router.get("/question/correct", Auth, async (req, res) => {
     }
 });
 
+router.get("/question/questionOnly", Auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { questionId } = req.query;
+        console.log(questionId)
+        const result = await pool.query(
+            "SELECT question FROM questions WHERE id = $1 AND user_id = $2",
+            [questionId, userId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Question not found" });
+        }
+
+        res.json({ question: result.rows[0].question });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch correct answer" });
+    }
+});
+
+router.post("/create/question", Auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { question, answers, correct } = req.body;
+        const { chatId } = req.query;
+
+        if (!Array.isArray(answers)) {
+            return res.status(400).json({ error: "Answers must be an array" });
+        }
+        if (answers.length !== 4) {
+            return res.status(400).json({ error: "Must have exactly 4 answers" });
+        }
+        if (answers.some(a => typeof a !== "string" || a.trim() === "")) {
+            return res.status(400).json({
+                error: "All answers must be non-empty strings"
+            });
+        }
+        if ((typeof question !== "string" || question.trim() === "") || (typeof correct !== "string" || correct.trim() === "")) {
+            return res.status(400).json({
+                error: "Question and correct answer must be non-empty strings"
+            });
+        }
+
+        const questionResult = await pool.query(
+            `INSERT INTO questions (chat_id, user_id, question, correct_answer) VALUES ($1, $2, $3, $4) RETURNING id`,
+            [chatId, userId, question, correct]
+        );
+        console.log(questionResult)
+
+        const questionId = questionResult.rows[0].id;
+
+        for (const answer of answers) {
+            await pool.query(
+                `INSERT INTO answers (question_id, answer_text) VALUES ($1, $2)`,
+                [questionId, answer]
+            );
+        }
+        res.status(200).json({ succes: "Created new question!" })
+    } catch (error) {
+        res.status(500).json({ error: "Failed to create question" });
+    }
+})
+
 export default router;

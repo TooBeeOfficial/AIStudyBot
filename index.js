@@ -25,10 +25,10 @@ const PgStore = connectPgSimple(expressSession);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(expressSession({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: new PgStore({ pool }),
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: new PgStore({ pool }),
 }));
 app.use(passport.authenticate('session'));
 app.use(passport.initialize());
@@ -43,5 +43,5 @@ app.use("/api", auth);
 app.use("/api", questions);
 
 app.listen(process.env.PORT, () => {
-    console.log("Server running on port: ",process.env.PORT);
+    console.log("Server running on port: ", process.env.PORT);
 });

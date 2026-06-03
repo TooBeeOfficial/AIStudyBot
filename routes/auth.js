@@ -7,11 +7,13 @@ import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import PublicUser from "../models/userModel.js";
+import z from "zod"
 
 dotenv.config({});
 
-const { Pool } = pg;
+const emailSchema = z.string().email();
 
+const { Pool } = pg;
 export const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
@@ -91,6 +93,22 @@ passport.use(new LocalStrategy(
     },
     async function verify(email, password, cb) {
         try {
+            if (
+                typeof email !== "string" ||
+                email.trim() === "" ||
+                typeof password !== "string" ||
+                password.trim() === ""
+            ) {
+                return cb(null, false, {
+                    message: "Email and password are required"
+                });
+            }
+
+            const result = emailSchema.safeParse(email);
+            if (!result.success) {
+                return cb(null, false, { message: "Invalid email" });
+            }
+
             const user = await pool.query(
                 "SELECT * FROM users WHERE email = $1",
                 [email]
@@ -114,7 +132,7 @@ passport.use(new LocalStrategy(
             return cb(null, { token, userDetails });
         } catch (error) {
             return cb({ error })
-        }                                                                                               
+        }
     }
 ))
 

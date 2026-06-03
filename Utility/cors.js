@@ -1,7 +1,7 @@
 
 app.use(cors({
-  origin: "http://localhost:4000",
-  credentials: true
+    origin: "http://localhost:4000",
+    credentials: true
 }));
-app.options("",cors({
+app.options("", cors({
 }));
