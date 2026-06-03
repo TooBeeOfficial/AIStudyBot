@@ -18,10 +18,6 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.get("/login", (req, res) => {
-    res.render("login");
-});
-
 router.post(
     "/login/federated/google",
     passport.authenticate("google")
