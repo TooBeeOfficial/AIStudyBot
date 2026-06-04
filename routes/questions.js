@@ -185,7 +185,7 @@ router.get("/question/questionOnly", Auth, async (req, res) => {
     }
 });
 
-router.post("/create/question", Auth, async (req, res) => {
+router.post("/question/create", Auth, async (req, res) => {
     try {
         const userId = req.user.id;
         const { question, answers, correct } = req.body;
@@ -193,6 +193,8 @@ router.post("/create/question", Auth, async (req, res) => {
 
         if (!Array.isArray(answers)) {
             return res.status(400).json({ error: "Answers must be an array" });
+        } else if (!answers.includes(correct)) {
+            return res.status(400).json({ error: "Correct answer must be in the list of answers." });
         }
         if (answers.length !== 4) {
             return res.status(400).json({ error: "Must have exactly 4 answers" });
@@ -225,6 +227,56 @@ router.post("/create/question", Auth, async (req, res) => {
         res.status(200).json({ succes: "Created new question!" })
     } catch (error) {
         res.status(500).json({ error: "Failed to create question" });
+    }
+})
+
+router.put("/question/update", Auth,async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { questionId } = req.query;
+        const { question, answers, correct } = req.body;
+        if (!Array.isArray(answers)) {
+            return res.status(400).json({ error: "Answers must be an array" });
+        } else if (!answers.includes(correct)) {
+            return res.status(400).json({ error: "Correct answer must be in the list of answers." });
+        }
+        if (answers.length !== 4) {
+            return res.status(400).json({ error: "Must have exactly 4 answers" });
+        }
+        if (answers.some(a => typeof a !== "string" || a.trim() === "")) {
+            return res.status(400).json({
+                error: "All answers must be non-empty strings"
+            });
+        }
+        if ((typeof question !== "string" || question.trim() === "") || (typeof correct !== "string" || correct.trim() === "")) {
+            return res.status(400).json({
+                error: "Question and correct answer must be non-empty strings"
+            });
+        }
+        
+        await pool.query("BEGIN");
+        const questionResult = await pool.query(
+            `UPDATE questions SET question = $1, correct_answer = $2 WHERE id = $3 AND user_id = $4 RETURNING id`,
+            [question, correct, questionId, userId]
+        );
+
+        const newQuestionId = questionResult.rows[0].id
+        await pool.query(
+            `DELETE FROM answers WHERE question_id = $1`,
+            [newQuestionId]
+        );
+
+        for (const answer of answers) {
+            await pool.query(
+                `INSERT INTO answers (question_id, answer_text) VALUES ($1, $2)`,
+                [newQuestionId, answer]
+            );
+        }
+        await pool.query("COMMIT");
+        res.status(200).json({ message: "Update successfull." })
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        res.status(500).json({ error: "Failed to update question" });
     }
 })
 

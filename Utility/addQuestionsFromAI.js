@@ -21,7 +21,6 @@ export async function saveQuizToDB(userId, chatId, quizJSON, message) {
             [chatId, userId, "assistant", JSON.stringify(quizJSON)]
         )
         for (const q of quizJSON.questions) {
-            await pool.query("COMMIT");
             const questionResult = await pool.query(
                 `INSERT INTO questions (chat_id, user_id, question, correct_answer) VALUES ($1, $2, $3, $4) RETURNING id`,
                 [chatId, userId, q.question, q.correct]
@@ -36,6 +35,7 @@ export async function saveQuizToDB(userId, chatId, quizJSON, message) {
                 );
             }
         }
+        await pool.query("COMMIT");
         return { success: true };
     } catch (err) {
         await pool.query("ROLLBACK");
