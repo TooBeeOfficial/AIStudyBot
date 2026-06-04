@@ -319,4 +319,20 @@ router.get("/chat/history", Auth, async (req,res) => {
     }
 })
 
+router.get("/me/chats", Auth, async(req,res) =>{
+    try {
+        const userId = req.user.id;
+
+        const chats = await pool.query(
+            "SELECT id FROM messages WHERE user_id = $1",
+            [userId]
+        )
+        console.log(chats.rows);
+
+        res.status(200).json(chats.rows)
+    } catch (error) {
+        res.status(500).json({ error: "Failed to get history" });
+    }
+})
+
 export default router;
