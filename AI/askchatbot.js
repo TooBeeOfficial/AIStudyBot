@@ -13,7 +13,7 @@ export async function AskChatBot(userMessage, botModel) {
             messages: [
                 {
                     role: "system",
-                    content: "Create quiz questions and 4 answers table from text, use JSON to seperate questions, Return only JSON no wrapping,Return a valid JSON object in the format: { 'questions': [ { 'question': '', 'answers': ['', '', '', ''], 'correct': '' } ] }",
+                    content: "Create quiz questions and 4 answers table from text,use JSON to seperate questions,Return only JSON no wrapping,Return a valid JSON object in the format:{'questions':[{'question':'','answers':['','','',''],'correct':''}]}",
                 },
                 {
                     role: "user",
@@ -36,12 +36,8 @@ export function parseQuestions(input) {
     try {
         let cleaned = input;
 
-        // If it's a string, normalize it
         if (typeof cleaned === "string") {
-            cleaned = cleaned
-                .replace(/\\n/g, "")
-                .replace(/\\"/g, '"')
-                .trim();
+            cleaned = cleaned.replace(/\\n/g, "").replace(/\\"/g, '"').trim();
         }
 
         return JSON.parse(cleaned);
