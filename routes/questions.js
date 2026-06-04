@@ -188,8 +188,8 @@ router.get("/question/questionOnly", Auth, async (req, res) => {
 router.post("/question/create", Auth, async (req, res) => {
     try {
         const userId = req.user.id;
-        const { question, answers, correct } = req.body;
         const { chatId } = req.query;
+        const { question, answers, correct } = req.body;
 
         if (!Array.isArray(answers)) {
             return res.status(400).json({ error: "Answers must be an array" });
@@ -299,6 +299,23 @@ router.delete("/question/delete", Auth, async (req, res) => {
     } catch (error) {
         await pool.query("ROLLBACK");
         res.status(500).json({ error: "Failed to update question" });
+    }
+})
+
+router.get("/chat/history", Auth, async (req,res) => {
+    try {
+        const userId = req.user.id;
+        const { chatId } = req.query;
+
+        const chat = await pool.query(
+            "SELECT id, role, content FROM messages WHERE user_id = $1 AND chat_id = $2",
+            [userId, chatId]
+        )
+        console.log(chat.rows);
+
+        res.status(200).json(chat.rows)
+    } catch (error) {
+        res.status(500).json({ error: "Failed to get history" });
     }
 })
 
