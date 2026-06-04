@@ -209,6 +209,7 @@ router.post("/question/create", Auth, async (req, res) => {
                 error: "Question and correct answer must be non-empty strings"
             });
         }
+        await pool.query("BEGIN");
 
         const questionResult = await pool.query(
             `INSERT INTO questions (chat_id, user_id, question, correct_answer) VALUES ($1, $2, $3, $4) RETURNING id`,
@@ -224,13 +225,15 @@ router.post("/question/create", Auth, async (req, res) => {
                 [questionId, answer]
             );
         }
+        await pool.query("COMMIT");
         res.status(200).json({ succes: "Created new question!" })
     } catch (error) {
+        await pool.query("ROLLBACK");
         res.status(500).json({ error: "Failed to create question" });
     }
 })
 
-router.put("/question/update", Auth,async (req, res) => {
+router.put("/question/update", Auth, async (req, res) => {
     try {
         const userId = req.user.id;
         const { questionId } = req.query;
@@ -253,7 +256,7 @@ router.put("/question/update", Auth,async (req, res) => {
                 error: "Question and correct answer must be non-empty strings"
             });
         }
-        
+
         await pool.query("BEGIN");
         const questionResult = await pool.query(
             `UPDATE questions SET question = $1, correct_answer = $2 WHERE id = $3 AND user_id = $4 RETURNING id`,
@@ -274,6 +277,25 @@ router.put("/question/update", Auth,async (req, res) => {
         }
         await pool.query("COMMIT");
         res.status(200).json({ message: "Update successfull." })
+    } catch (error) {
+        await pool.query("ROLLBACK");
+        res.status(500).json({ error: "Failed to update question" });
+    }
+})
+
+router.delete("/question/delete", Auth, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { questionId } = req.query;
+
+        await pool.query("BEGIN");
+        await pool.query(
+            `DELETE FROM questions WHERE id = $1 AND user_id = $2`,
+            [questionId, userId]
+        );
+
+        await pool.query("COMMIT");
+        res.status(200).json({ message: "Delete successfull." })
     } catch (error) {
         await pool.query("ROLLBACK");
         res.status(500).json({ error: "Failed to update question" });
