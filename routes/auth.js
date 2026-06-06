@@ -212,7 +212,6 @@ router.post("/signup", async (req, res) => {
     sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
-  console.log(newUser);
   return res.status(200).json(newUser);
 });
 
@@ -226,7 +225,6 @@ router.post("/logout", (req, res) => {
     });
     return res.json({ success: true });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error });
   }
 });
