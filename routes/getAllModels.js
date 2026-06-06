@@ -5,7 +5,7 @@ import { Auth } from "../Utility/jwtToken.js";
 const router = express.Router();
 
 router.use(express.json());
-router.get("/models", async (req, res) => {
+router.get("/models", Auth,async (req, res) => {
     try {
         const content = GroqModel.publicList()
         res.json( content );

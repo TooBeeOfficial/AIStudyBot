@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export function Auth(req, res, next) {
-  const token = req.cookies["token"]; // match cookie name
-    console.log(token)
+  const token = req.cookies["token"];
   if (!token) {
     return res.status(401).json({ error: "No token" });
   }
