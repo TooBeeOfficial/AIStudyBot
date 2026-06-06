@@ -324,12 +324,27 @@ router.get("/me/chats", Auth, async(req,res) =>{
         const userId = req.user.id;
 
         const chats = await pool.query(
-            "SELECT id FROM messages WHERE user_id = $1",
+            "SELECT id FROM chats WHERE user_id = $1",
             [userId]
         )
-        console.log(chats.rows);
+        console.log(chats);
 
         res.status(200).json(chats.rows)
+    } catch (error) {
+        res.status(500).json({ error: "Failed to get history" });
+    }
+})
+
+router.post("/me/newchat", Auth, async(req,res) =>{
+    try {
+        const userId = req.user.id;
+
+        const chats = await pool.query(
+            "INSERT INTO chats (user_id) VALUES ($1)",
+            [userId]
+        )
+
+        res.status(200).json({message: "Successfully created new chat!"})
     } catch (error) {
         res.status(500).json({ error: "Failed to get history" });
     }

@@ -1,15 +1,17 @@
 import jwt from "jsonwebtoken";
 
 export function Auth(req, res, next) {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ error: "No token" });
-    }
-    try {
-        const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: "Invalid token" });
-    }
+  const token = req.cookies["token"]; // match cookie name
+    console.log(token)
+  if (!token) {
+    return res.status(401).json({ error: "No token" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
 }
