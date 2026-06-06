@@ -72,18 +72,13 @@ passport.use(
 );
 
 router.get(
-  "/login/google/callback",
+  "/oauth2/redirect/google",
   passport.authenticate("google", { session: false }),
   async (req, res) => {
     const user = req.user;
 
-    const userMatches = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [user.email],
-    );
-
     const token = jwt.sign(
-      { id: userMatches.rows[0].id, email: userMatches.rows[0].email },
+      { id: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -96,29 +91,24 @@ router.get(
     });
 
     const newUser = {
-      id: userMatches.rows[0].id,
-      email: userMatches.rows[0].email,
-      name: userMatches.rows[0].name,
+      id: user.id,
+      email: user.email,
+      name: user.name,
     };
-    return res.status(200).json(newUser);
+    return res.redirect("http://localhost:4200");
   },
 );
 
 router.post(
   "/login/email",
-  passport.authenticate("local"),
+  passport.authenticate("local", { session: false }),
   async (req, res) => {
-    const user = req.body;
-
-    const userMatches = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [user.email],
-    );
+    const user = req.user;
 
     const token = jwt.sign(
       {
-        id: userMatches.rows[0].id,
-        email: userMatches.rows[0].email,
+        id: user.id,
+        email: user.email,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
@@ -132,9 +122,9 @@ router.post(
     });
 
     const newUser = {
-      id: userMatches.rows[0].id,
-      email: userMatches.rows[0].email,
-      name: userMatches.rows[0].name,
+      id: user.id,
+      email: user.email,
+      name: user.name,
     };
     return res.status(200).json(newUser);
   },
@@ -182,7 +172,7 @@ passport.use(
 
         const userDetails = PublicUser.fromDbUser(user.rows[0]);
 
-        return cb(null, { userDetails });
+        return cb(null, userDetails);
       } catch (error) {
         return cb({ error });
       }
@@ -199,7 +189,7 @@ router.post("/signup", async (req, res) => {
   if (userMatches.rowCount !== 0) {
     return res.status(401).json({ failed: "User already exists!" });
   }
-  
+
   const userResult = await pool.query(
     "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
     [user.name, user.email, await bcrypt.hash(user.password, 10)],
@@ -222,19 +212,23 @@ router.post("/signup", async (req, res) => {
     sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
-
+  console.log(newUser);
   return res.status(200).json(newUser);
 });
 
-router.post("/logout", (req, res, next) => {
-  req.logout(function (err) {
-    console.log("ERROR: ", err);
-    if (err) return next(err);
-    req.session.destroy(() => {
-      res.clearCookie("connect.sid");
-      res.json({ success: true });
+router.post("/logout", (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      path: "/",
     });
-  });
+    return res.json({ success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error });
+  }
 });
 
 passport.serializeUser((user, cb) => {

@@ -20,10 +20,11 @@ router.get("/me", Auth, async (req, res) => {
             return res.status(401).json({ error: "Not authenticated" });
         }
         const user = await pool.query(
-            "SELECT * FROM users WHERE id = $1",
-            [req.user.id]
+            "SELECT * FROM users WHERE email = $1",
+            [req.user.email]
         );
         const publicUser = PublicUser.fromDbUser(user.rows[0])
+        console.log(publicUser)
         res.json(publicUser);
     } catch (error) {
         console.error(error);
