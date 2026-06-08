@@ -43,6 +43,6 @@ export function parseQuestions(input) {
         return JSON.parse(cleaned);
     } catch (error) {
         console.error("Failed to parse questions JSON:", error);
-        return null;
+        return error;
     }
 }

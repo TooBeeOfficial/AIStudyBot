@@ -1,8 +1,8 @@
 export default class PublicUser {
-    constructor(name, email,id) {
+    constructor(id, name, email ) {
+        this.id = id
         this.name = name;
         this.email = email;
-        this.id = id
     }
 
     static fromDbUser(user) {

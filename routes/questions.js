@@ -65,11 +65,11 @@ router.get("/answers", Auth, async (req, res) => {
     );
 
     if (check.rows.length === 0) {
-      return res.status(403).json({ error: "Not found or unauthorized" });
+      return res.status(403).json({ error: "Question not found!" });
     }
 
     const result = await pool.query(
-      "SELECT * FROM answers WHERE question_id = $1",
+      "SELECT id, question_id, answer_text FROM answers WHERE question_id = $1",
       [questionId],
     );
 
@@ -97,7 +97,7 @@ router.get("/question/full", Auth, async (req, res) => {
     const question = questionResult.rows[0];
 
     const answersResult = await pool.query(
-      "SELECT * FROM answers WHERE question_id = $1",
+      "SELECT id, question_id, answer_text FROM answers WHERE question_id = $1",
       [questionId],
     );
 
@@ -124,7 +124,7 @@ router.get("/quiz", Auth, async (req, res) => {
     const fullQuiz = await Promise.all(
       questionsResult.rows.map(async (q) => {
         const answersResult = await pool.query(
-          "SELECT * FROM answers WHERE question_id = $1",
+          "SELECT id, question_id, answer_text FROM answers WHERE question_id = $1",
           [q.id],
         );
 
@@ -144,19 +144,25 @@ router.get("/quiz", Auth, async (req, res) => {
 
 router.get("/question/correct", Auth, async (req, res) => {
   try {
-    const userId = req.user.id;
     const { questionId } = req.query;
 
     const result = await pool.query(
-      "SELECT correct_answer FROM questions WHERE id = $1 AND user_id = $2",
-      [questionId, userId],
+      `
+      SELECT a.*
+      FROM questions q
+      JOIN answers a
+        ON a.question_id = q.id
+      WHERE q.id = $1
+        AND a.answer_text = q.correct_answer
+      `,
+      [questionId],
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Question not found" });
     }
 
-    res.json({ correct: result.rows[0].correct_answer });
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch correct answer" });
@@ -345,11 +351,10 @@ router.post("/me/newchat", Auth, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const chats = await pool.query("INSERT INTO chats (user_id) VALUES ($1)", [
-      userId,
-    ]);
+    const chats = await pool.query("INSERT INTO chats (user_id) VALUES ($1) RETURNING id",
+        [userId]);
 
-    res.status(200).json({ message: "Successfully created new chat!" });
+    res.status(200).json(chats.rows[0]);
   } catch (error) {
     res.status(500).json({ error: "Failed to get history" });
   }
