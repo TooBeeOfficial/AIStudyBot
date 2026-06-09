@@ -321,7 +321,7 @@ router.get("/chat/history", Auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { chatId } = req.query;
-
+    
     const chat = await pool.query(
       "SELECT id, role, content FROM messages WHERE user_id = $1 AND chat_id = $2",
       [userId, chatId],
