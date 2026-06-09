@@ -321,9 +321,29 @@ router.get("/chat/history", Auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { chatId } = req.query;
-    
+
     const chat = await pool.query(
       "SELECT id, role, content FROM messages WHERE user_id = $1 AND chat_id = $2",
+      [userId, chatId],
+    );
+
+    res.status(200).json(chat.rows);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to get history" });
+  }
+});
+
+router.get("/chat/lastmessage", Auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { chatId } = req.query;
+
+    const chat = await pool.query(
+      `SELECT id, role, content
+       FROM messages
+       WHERE user_id = $1 AND chat_id = $2
+       ORDER BY created_at ASC
+       LIMIT 1`,
       [userId, chatId],
     );
 
@@ -351,8 +371,10 @@ router.post("/me/newchat", Auth, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const chats = await pool.query("INSERT INTO chats (user_id) VALUES ($1) RETURNING id",
-        [userId]);
+    const chats = await pool.query(
+      "INSERT INTO chats (user_id) VALUES ($1) RETURNING id",
+      [userId],
+    );
 
     res.status(200).json(chats.rows[0]);
   } catch (error) {
