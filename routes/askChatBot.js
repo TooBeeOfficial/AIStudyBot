@@ -33,7 +33,7 @@ router.post("/chat", Auth, async (req, res) => {
 
     const content = await AskChatBot(message, GroqModel.getModelById(model));
     await saveQuizToDB(userId, chatId, content, message);
-    return res.status(200).json(content.questions);
+    return res.status(200).json(content);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Something went wrong" });

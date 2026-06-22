@@ -117,7 +117,7 @@ router.get("/quiz", Auth, async (req, res) => {
     const { chatId } = req.query;
 
     const questionsResult = await pool.query(
-      "SELECT * FROM questions WHERE user_id = $1 AND chat_id = $2",
+      "SELECT * FROM questions WHERE user_id = $1 AND chat_id = $2 ORDER BY id ASC",
       [userId, chatId],
     );
 
@@ -134,7 +134,6 @@ router.get("/quiz", Auth, async (req, res) => {
         };
       }),
     );
-
     res.json(fullQuiz);
   } catch (err) {
     console.error(err);
@@ -223,21 +222,31 @@ router.post("/question/create", Auth, async (req, res) => {
 
     const questionResult = await pool.query(
       `INSERT INTO questions (chat_id, user_id, question, correct_answer) VALUES ($1, $2, $3, $4) RETURNING id`,
-      [chatId, userId, question, correct],
+      [chatId, userId, question, 0],
     );
 
     const questionId = questionResult.rows[0].id;
-
+    let correctID = -1;
     for (const answer of answers) {
-      await pool.query(
-        `INSERT INTO answers (question_id, answer_text) VALUES ($1, $2)`,
+      const ans = await pool.query(
+        `INSERT INTO answers (question_id, answer_text) VALUES ($1, $2) returning id, answer_text`,
         [questionId, answer],
       );
+      if (ans.rows[0].answer_text === correct) {
+        correctID = ans.rows[0].id;
+      }
     }
+
+    await pool.query(
+      `UPDATE questions SET correct_answer = $1 WHERE id = $2 AND user_id = $3`,
+      [correctID, questionId, userId],
+    );
+
     await pool.query("COMMIT");
     res.status(200).json({ succes: "Created new question!" });
   } catch (error) {
     await pool.query("ROLLBACK");
+    console.log(error);
     res.status(500).json({ error: "Failed to create question" });
   }
 });
@@ -247,9 +256,10 @@ router.put("/question/update", Auth, async (req, res) => {
     const userId = req.user.id;
     const { questionId } = req.query;
     const { question, answers, correct } = req.body;
+    console.log(answers);
     if (!Array.isArray(answers)) {
-      return res.status(400).json({ error: "Answers must be an array" });
-    } else if (!answers.includes(correct)) {
+      return res.status(400).json({ error: "Answers must be an array!" });
+    } else if (!answers.some((ans) => ans.id === correct)) {
       return res
         .status(400)
         .json({ error: "Correct answer must be in the list of answers." });
@@ -257,43 +267,33 @@ router.put("/question/update", Auth, async (req, res) => {
     if (answers.length !== 4) {
       return res.status(400).json({ error: "Must have exactly 4 answers" });
     }
-    if (answers.some((a) => typeof a !== "string" || a.trim() === "")) {
+    if (typeof question !== "string" || question.trim() === "") {
       return res.status(400).json({
-        error: "All answers must be non-empty strings",
-      });
-    }
-    if (
-      typeof question !== "string" ||
-      question.trim() === "" ||
-      typeof correct !== "string" ||
-      correct.trim() === ""
-    ) {
-      return res.status(400).json({
-        error: "Question and correct answer must be non-empty strings",
+        error: "Question must be non-empty strings",
       });
     }
 
     await pool.query("BEGIN");
-    const questionResult = await pool.query(
-      `UPDATE questions SET question = $1, correct_answer = $2 WHERE id = $3 AND user_id = $4 RETURNING id`,
-      [question, correct, questionId, userId],
-    );
-
-    const newQuestionId = questionResult.rows[0].id;
-    await pool.query(`DELETE FROM answers WHERE question_id = $1`, [
-      newQuestionId,
-    ]);
+    const insertedIds = [];
 
     for (const answer of answers) {
-      await pool.query(
-        `INSERT INTO answers (question_id, answer_text) VALUES ($1, $2)`,
-        [newQuestionId, answer],
+      const result = await pool.query(
+        `UPDATE answers SET question_id = $1, answer_text = $2 WHERE id = $3 RETURNING id`,
+        [questionId, answer.answer, answer.id],
       );
+      insertedIds.push(result.rows[0].id);
     }
+
+    await pool.query(
+      `UPDATE questions SET question = $1, correct_answer = $4 WHERE id = $2 AND user_id = $3`,
+      [question, questionId, userId, correct],
+    );
+
     await pool.query("COMMIT");
     res.status(200).json({ message: "Update successfull." });
   } catch (error) {
     await pool.query("ROLLBACK");
+    console.log(error);
     res.status(500).json({ error: "Failed to update question" });
   }
 });
@@ -333,23 +333,62 @@ router.get("/chat/history", Auth, async (req, res) => {
   }
 });
 
+router.delete("/chat/delete", Auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { chatId } = req.query;
+    await pool.query("BEGIN");
+    const chat = await pool.query(
+      "DELETE FROM chats WHERE id = $1 AND user_id = $2 RETURNING *",
+      [chatId, userId],
+    );
+    await pool.query("COMMIT");
+    if (chat.rowCount === 0) {
+      res.status(404).json({ error: "No chat to delete!" });
+    } else {
+      res.status(200).json({ success: "Deleted successfully!" });
+    }
+  } catch (error) {
+    await pool.query("ROLLBACK");
+
+    console.log(error);
+    res.status(500).json({ error });
+  }
+});
+
 router.get("/chat/lastmessage", Auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { chatId } = req.query;
 
     const chat = await pool.query(
-      `SELECT id, role, content
-       FROM messages
-       WHERE user_id = $1 AND chat_id = $2
-       ORDER BY created_at ASC
-       LIMIT 1`,
+      ` SELECT id, chat_id, role, content FROM messages WHERE user_id = $1 AND chat_id = $2
+      UNION ALL SELECT -1 AS id, $2 AS chat_id, 'user' AS role, 'New Chat' AS content WHERE NOT EXISTS
+      ( SELECT 1 FROM messages WHERE user_id = $1 AND chat_id = $2 ) ORDER BY id ASC LIMIT 1; `,
       [userId, chatId],
     );
 
-    res.status(200).json(chat.rows);
+    res.status(200).json(chat.rows[0]);
   } catch (error) {
     res.status(500).json({ error: "Failed to get history" });
+  }
+});
+
+router.get("/chat/lastmessage/all", Auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { chatId } = req.query;
+
+    const chats = await pool.query(
+      ` SELECT c.id AS chat_id, COALESCE (m.content, 'New Chat') AS content FROM chats c LEFT JOIN ( SELECT DISTINCT ON (chat_id) chat_id, content FROM messages WHERE user_id = $1 AND role = 'user' ORDER BY chat_id, id ASC ) m ON m.chat_id = c.id WHERE c.user_id = $1 ORDER BY c.id ASC; `,
+      [userId],
+    );
+
+    return res.status(200).json(chats.rows);
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({ error: "Failed to get history" });
   }
 });
 
@@ -376,9 +415,10 @@ router.post("/me/newchat", Auth, async (req, res) => {
       [userId],
     );
 
-    res.status(200).json(chats.rows[0]);
+    return res.status(200).json(chats.rows[0]);
   } catch (error) {
-    res.status(500).json({ error: "Failed to get history" });
+    console.log(error);
+    return res.status(500).json({ error: "Failed to create chat" });
   }
 });
 
