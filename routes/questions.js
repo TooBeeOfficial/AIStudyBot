@@ -117,7 +117,7 @@ router.get("/quiz", Auth, async (req, res) => {
     const { chatId } = req.query;
 
     const questionsResult = await pool.query(
-      "SELECT * FROM questions WHERE user_id = $1 AND chat_id = $2 ORDER BY id ASC",
+      "SELECT id, chat_id, question FROM questions WHERE user_id = $1 AND chat_id = $2 ORDER BY id ASC",
       [userId, chatId],
     );
 
@@ -147,12 +147,12 @@ router.get("/question/correct", Auth, async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT a.*
-      FROM questions q
-      JOIN answers a
+      SELECT a.answer_text
+      FROM answers a
+      JOIN questions q
         ON a.question_id = q.id
       WHERE q.id = $1
-        AND a.answer_text = q.correct_answer
+        AND a.id = q.correct_answer
       `,
       [questionId],
     );
@@ -165,6 +165,27 @@ router.get("/question/correct", Auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch correct answer" });
+  }
+});
+
+router.get("/question/checkAnswer", Auth, async (req, res) => {
+  try {
+    const { questionId, answerId } = req.query;
+
+    const result = await pool.query(
+      `
+      SELECT correct_answer FROM questions WHERE id = $1`,
+      [questionId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    return res.json(result.rows[0].correct_answer);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to check correct answer" });
   }
 });
 
