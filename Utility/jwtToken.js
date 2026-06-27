@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export function Auth(req, res, next) {
   const token = req.cookies["token"];
-  console.log(token);
+  console.log(req.cookies);
   if (!token) {
     return res.status(401).json({ error: "No token" });
   }
