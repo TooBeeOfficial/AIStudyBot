@@ -62,19 +62,14 @@ router.get("/answers", Auth, async (req, res) => {
     const userId = req.user.id;
     const { questionId } = req.query;
 
-    const check = await pool.query(
-      "SELECT id FROM questions WHERE id = $1 AND user_id = $2",
-      [questionId, userId],
-    );
-
-    if (check.rows.length === 0) {
-      return res.status(403).json({ error: "Question not found!" });
-    }
-
     const result = await pool.query(
       "SELECT id, question_id, answer_text FROM answers WHERE question_id = $1",
       [questionId],
     );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({ error: "Question not found!" });
+    }
 
     res.json(result.rows);
   } catch (err) {
@@ -119,25 +114,41 @@ router.get("/quiz", Auth, async (req, res) => {
     const userId = req.user.id;
     const { chatId } = req.query;
 
-    const questionsResult = await pool.query(
-      "SELECT id, chat_id, question FROM questions WHERE user_id = $1 AND chat_id = $2 ORDER BY id ASC",
+    const result = await pool.query(
+      `SELECT q.id AS question_id, q.chat_id, q.question, a.id AS answer_id, a.answer_text FROM questions q
+      LEFT JOIN answers a ON q.id = a.question_id
+      WHERE q.user_id = $1 AND q.chat_id = $2 ORDER BY q.id, a.id`,
       [userId, chatId],
     );
 
-    const fullQuiz = await Promise.all(
-      questionsResult.rows.map(async (q) => {
-        const answersResult = await pool.query(
-          "SELECT id, question_id, answer_text FROM answers WHERE question_id = $1",
-          [q.id],
-        );
+    const quiz = [];
+    const questionMap = new Map();
 
-        return {
-          ...q,
-          answers: answersResult.rows,
+    for (const row of result.rows) {
+      let question = questionMap.get(row.question_id);
+
+      if (!question) {
+        question = {
+          id: row.question_id,
+          chat_id: row.chat_id,
+          question: row.question,
+          answers: [],
         };
-      }),
-    );
-    res.json(fullQuiz);
+
+        questionMap.set(row.question_id, question);
+        quiz.push(question);
+      }
+
+      if (row.answer_id !== null) {
+        question.answers.push({
+          id: row.answer_id,
+          question_id: row.question_id,
+          answer_text: row.answer_text,
+        });
+      }
+    }
+
+    res.json(quiz);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch quiz" });
@@ -149,14 +160,7 @@ router.get("/question/correct", Auth, async (req, res) => {
     const { questionId } = req.query;
 
     const result = await pool.query(
-      `
-      SELECT a.answer_text
-      FROM answers a
-      JOIN questions q
-        ON a.question_id = q.id
-      WHERE q.id = $1
-        AND a.id = q.correct_answer
-      `,
+      ` SELECT a.answer_text FROM answers a JOIN questions q ON a.question_id = q.id WHERE q.id = $1 AND a.id = q.correct_answer `,
       [questionId],
     );
 
@@ -246,7 +250,7 @@ router.post("/question/create", Auth, async (req, res) => {
 
     const questionResult = await pool.query(
       `INSERT INTO questions (chat_id, user_id, question, correct_answer) VALUES ($1, $2, $3, $4) RETURNING id`,
-      [chatId, userId, question, 0],
+      [chatId, userId, question, null],
     );
 
     const questionId = questionResult.rows[0].id;
@@ -280,7 +284,7 @@ router.put("/question/update", Auth, async (req, res) => {
     const userId = req.user.id;
     const { questionId } = req.query;
     const { question, answers, correct } = req.body;
-    console.log(answers);
+
     if (!Array.isArray(answers)) {
       return res.status(400).json({ error: "Answers must be an array!" });
     } else if (!answers.some((ans) => ans.id === correct)) {
@@ -386,9 +390,11 @@ router.get("/chat/lastmessage", Auth, async (req, res) => {
     const { chatId } = req.query;
 
     const chat = await pool.query(
-      ` SELECT id, chat_id, role, content FROM messages WHERE user_id = $1 AND chat_id = $2
+      `SELECT id, chat_id, role, content FROM messages
+      WHERE user_id = $1 AND chat_id = $2
       UNION ALL SELECT -1 AS id, $2 AS chat_id, 'user' AS role, 'New Chat' AS content WHERE NOT EXISTS
-      ( SELECT 1 FROM messages WHERE user_id = $1 AND chat_id = $2 ) ORDER BY id ASC LIMIT 1; `,
+      ( SELECT 1 FROM messages WHERE user_id = $1 AND chat_id = $2 )
+      ORDER BY id ASC LIMIT 1; `,
       [userId, chatId],
     );
 
@@ -404,7 +410,10 @@ router.get("/chat/lastmessage/all", Auth, async (req, res) => {
     const { chatId } = req.query;
 
     const chats = await pool.query(
-      ` SELECT c.id AS chat_id, COALESCE (m.content, 'New Chat') AS content FROM chats c LEFT JOIN ( SELECT DISTINCT ON (chat_id) chat_id, content FROM messages WHERE user_id = $1 AND role = 'user' ORDER BY chat_id, id ASC ) m ON m.chat_id = c.id WHERE c.user_id = $1 ORDER BY c.id ASC; `,
+      `SELECT c.id AS chat_id, COALESCE (m.content, 'New Chat') AS content FROM chats c
+      LEFT JOIN ( SELECT DISTINCT ON (chat_id) chat_id, content FROM messages
+      WHERE user_id = $1 AND role = 'user' ORDER BY chat_id, id ASC ) m ON m.chat_id = c.id
+      WHERE c.user_id = $1 ORDER BY c.id ASC; `,
       [userId],
     );
 
