@@ -10,6 +10,9 @@ const router = express.Router();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : false,
 });
 router.use(express.json());
 router.post("/chat", Auth, async (req, res) => {

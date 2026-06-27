@@ -23,6 +23,9 @@ app.use(express.json());
 app.use(cookieParser());
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : false,
 });
 const PgStore = connectPgSimple(expressSession);
 
@@ -42,6 +45,7 @@ app.use(
     store: new PgStore({ pool }),
   }),
 );
+
 app.use(passport.authenticate("session"));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -53,6 +57,7 @@ app.use("/api", users);
 app.use("/api", auth);
 app.use("/api", questions);
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT, async () => {
   console.log("Server running on port: ", process.env.PORT);
+  await pool.query("SET search_path TO public");
 });

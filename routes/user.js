@@ -10,12 +10,18 @@ dotenv.config();
 const { Pool } = postgresSQL;
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : false,
 });
 const router = express.Router();
 router.use(express.json());
 
 router.get("/me", Auth, async (req, res) => {
   try {
+    const test = await pool.query("SELECT * FROM public.session");
+
+    console.log(test.rows);
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }

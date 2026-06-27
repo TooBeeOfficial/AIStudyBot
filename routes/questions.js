@@ -5,6 +5,9 @@ import { Auth } from "../Utility/jwtToken.js";
 const router = express.Router();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 router.get("/questionsCount/bychat", Auth, async (req, res) => {
