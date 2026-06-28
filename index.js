@@ -31,7 +31,7 @@ const PgStore = connectPgSimple(expressSession);
 
 app.use(
   cors({
-    origin: "http://localhost:4200/",
+    origin: "http://localhost:4200",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
