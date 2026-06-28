@@ -99,7 +99,7 @@ router.get(
       email: user.email,
       name: user.name,
     };
-    res.redirect("https://upset-schools-love.loca.lt");
+    res.redirect("http://localhost:4200/");
   },
 );
 
