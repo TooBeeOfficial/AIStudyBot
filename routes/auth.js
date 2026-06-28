@@ -85,6 +85,7 @@ router.get(
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
+    console.log(token)
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -98,7 +99,7 @@ router.get(
       email: user.email,
       name: user.name,
     };
-    return res.redirect("http://localhost:4200");
+    res.redirect("http://localhost:4200");
   },
 );
 
