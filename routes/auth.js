@@ -85,12 +85,13 @@ router.get(
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    console.log(token)
+    console.log(token);
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      partitioned: true,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -122,6 +123,7 @@ router.post(
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      partitioned: true,
       maxAge: 1000 * 60 * 60 * 24,
     });
 
@@ -214,6 +216,7 @@ router.post("/signup", async (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    partitioned: true,
     maxAge: 1000 * 60 * 60 * 24,
   });
   return res.status(200).json(newUser);
