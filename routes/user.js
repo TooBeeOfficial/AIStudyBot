@@ -20,8 +20,6 @@ router.use(express.json());
 router.get("/me", Auth, async (req, res) => {
   try {
     const test = await pool.query("SELECT * FROM public.session");
-
-    console.log(test.rows);
     if (!req.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }

@@ -274,7 +274,6 @@ router.post("/question/create", Auth, async (req, res) => {
     res.status(200).json({ succes: "Created new question!" });
   } catch (error) {
     await pool.query("ROLLBACK");
-    console.log(error);
     res.status(500).json({ error: "Failed to create question" });
   }
 });
@@ -321,7 +320,6 @@ router.put("/question/update", Auth, async (req, res) => {
     res.status(200).json({ message: "Update successfull." });
   } catch (error) {
     await pool.query("ROLLBACK");
-    console.log(error);
     res.status(500).json({ error: "Failed to update question" });
   }
 });
@@ -378,8 +376,6 @@ router.delete("/chat/delete", Auth, async (req, res) => {
     }
   } catch (error) {
     await pool.query("ROLLBACK");
-
-    console.log(error);
     res.status(500).json({ error });
   }
 });
@@ -419,8 +415,6 @@ router.get("/chat/lastmessage/all", Auth, async (req, res) => {
 
     return res.status(200).json(chats.rows);
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({ error: "Failed to get history" });
   }
 });
@@ -450,7 +444,6 @@ router.post("/me/newchat", Auth, async (req, res) => {
 
     return res.status(200).json(chats.rows[0]);
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to create chat" });
   }
 });

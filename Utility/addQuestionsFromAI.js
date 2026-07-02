@@ -47,7 +47,6 @@ export async function saveQuizToDB(userId, chatId, quizJSON, message) {
     return { success: true };
   } catch (err) {
     await pool.query("ROLLBACK");
-    console.log(err);
     return { success: false, error: err.message };
   }
 }

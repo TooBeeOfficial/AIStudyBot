@@ -85,7 +85,6 @@ router.get(
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    console.log(token);
 
     res.cookie("token", token, {
       httpOnly: true,
