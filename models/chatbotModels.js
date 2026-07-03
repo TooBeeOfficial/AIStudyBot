@@ -1,5 +1,4 @@
 export default class GroqModel {
-  static LLAMA_33_70B = new GroqModel("llama-3.3-70b-versatile", 1024, 1);
   static META_LLAMA = new GroqModel(
     "meta-llama/llama-4-scout-17b-16e-instruct",
     1024,
@@ -17,7 +16,6 @@ export default class GroqModel {
 
   static _getAllModels() {
     return [
-      GroqModel.LLAMA_33_70B,
       GroqModel.META_LLAMA,
       GroqModel.GPT_OSS_120B,
       GroqModel.GPT_OSS_20B,
