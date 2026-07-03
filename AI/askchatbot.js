@@ -5,12 +5,10 @@ dotenv.config({ path: "./env/.env" });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export async function AskChatBot(userMessage, botModel) {
-  if (!botModel?.modelName) {
-    throw new Error("Invalid model supplied");
-  }
   try {
+    const websearch = botModel.searchWeb
     const res = await groq.chat.completions.create({
-      messages: [
+      'messages': [
         {
           role: "system",
           content:
@@ -21,16 +19,12 @@ export async function AskChatBot(userMessage, botModel) {
           content: userMessage,
         },
       ],
-      response_format: { type: "json_object" },
-      model: botModel.modelName,
-      temperature: 1,
-      max_completion_tokens: botModel.maxCompletionTokens,
-      top_p: 1,
-      tools: [
-        {
-          type: "browser_search",
-        },
-      ],
+      'response_format': { type: "json_object" },
+      'model': botModel.modelName,
+      'temperature': 1,
+      'max_completion_tokens': botModel.maxCompletionTokens,
+      'top_p': 1,
+      websearch
     });
     return parseQuestions(res.choices[0].message.content);
   } catch (error) {

@@ -1,17 +1,33 @@
 export default class GroqModel {
-  static META_LLAMA = new GroqModel(
-    "meta-llama/llama-4-scout-17b-16e-instruct",
-    1024,
-    2,
-  );
-  static GPT_OSS_120B = new GroqModel("openai/gpt-oss-120b", 8192, 3);
-  static GPT_OSS_20B = new GroqModel("openai/gpt-oss-20b", 8192, 4);
-  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 5);
+  static GPT_OSS_120B = new GroqModel("openai/gpt-oss-120b", 8192, 3, {
+    tools: [
+      {
+        type: "browser_search",
+      },
+    ],
+  });
 
-  constructor(modelName, maxCompletionTokens, modelID) {
+  static GPT_OSS_20B = new GroqModel("openai/gpt-oss-20b", 8192, 4, {
+    tools: [
+      {
+        type: "browser_search",
+      },
+    ],
+  });
+
+  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 5, {
+    compound_custom: {
+      tools: {
+        enabled_tools: ["web_search"],
+      },
+    },
+  });
+
+  constructor(modelName, maxCompletionTokens, modelID, webSearch) {
     this.modelName = modelName;
     this.maxCompletionTokens = maxCompletionTokens;
     this.id = modelID;
+    this.searchWeb = webSearch;
   }
 
   static _getAllModels() {
