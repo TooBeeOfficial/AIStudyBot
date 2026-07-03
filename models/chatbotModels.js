@@ -32,7 +32,6 @@ export default class GroqModel {
 
   static _getAllModels() {
     return [
-      GroqModel.META_LLAMA,
       GroqModel.GPT_OSS_120B,
       GroqModel.GPT_OSS_20B,
       GroqModel.GROQ_COMPOUND,
