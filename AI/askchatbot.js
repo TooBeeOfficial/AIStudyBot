@@ -22,14 +22,14 @@ export async function AskChatBot(userMessage, botModel) {
           content: userMessage,
         },
       ],
-      'response_format': { type: "json_object" },
+      'response_format': { type: 'json_object' },
       'model': botModel.modelName,
       'temperature': 1,
       'max_completion_tokens': botModel.maxCompletionTokens,
       'top_p': 1,
       'tools': [
       {
-        type: "browser_search",
+        'type': 'browser_search',
       },
     ],
     });
