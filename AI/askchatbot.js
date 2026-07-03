@@ -14,7 +14,7 @@ export async function AskChatBot(userMessage, botModel) {
         {
           role: "system",
           content:
-            'Create quiz questions from the user input. Return ONLY valid JSON. all answers must be different and only 1 correct answer.Use this exact format: { "questions": [ { "question": "string", "answers": ["string", "string", "string", "string"], "correct": "string" } ] }',
+            'Create quiz with as many questions from the user input. Return ONLY valid JSON. all answers must be different and only 1 correct answer.if there isn"t enough content to create a quiz pull someting related from the web.Use this exact format: { "questions": [ { "question": "string", "answers": ["string", "string", "string", "string"], "correct": "string" } ] }',
         },
         {
           role: "user",
