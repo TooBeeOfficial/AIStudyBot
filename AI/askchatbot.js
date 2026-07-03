@@ -22,7 +22,6 @@ export async function AskChatBot(userMessage, botModel) {
           content: userMessage,
         },
       ],
-      'response_format': { type: 'json_object' },
       'model': botModel.modelName,
       'temperature': 1,
       'max_completion_tokens': botModel.maxCompletionTokens,
