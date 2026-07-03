@@ -1,5 +1,5 @@
 export default class GroqModel {
-  static GPT_OSS_120B = new GroqModel("openai/gpt-oss-120b", 8192, 3, {
+  static GPT_OSS_120B = new GroqModel("openai/gpt-oss-120b", 8192, 1, {
     tools: [
       {
         type: "browser_search",
@@ -7,7 +7,7 @@ export default class GroqModel {
     ],
   });
 
-  static GPT_OSS_20B = new GroqModel("openai/gpt-oss-20b", 8192, 4, {
+  static GPT_OSS_20B = new GroqModel("openai/gpt-oss-20b", 8192, 2, {
     tools: [
       {
         type: "browser_search",
@@ -15,7 +15,7 @@ export default class GroqModel {
     ],
   });
 
-  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 5, {
+  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 3, {
     compound_custom: {
       tools: {
         enabled_tools: ["web_search"],

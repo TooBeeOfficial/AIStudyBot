@@ -16,6 +16,7 @@ const pool = new Pool({
 });
 router.use(express.json());
 router.post("/chat", Auth, async (req, res) => {
+    console.log(req.body);
   try {
     const message = req.body.message;
     const model = req.body.model;

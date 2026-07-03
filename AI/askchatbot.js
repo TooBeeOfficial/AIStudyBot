@@ -5,6 +5,9 @@ dotenv.config({ path: "./env/.env" });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export async function AskChatBot(userMessage, botModel) {
+  if (botModel) {
+    
+  }
   try {
     const websearch = botModel.searchWeb
     const res = await groq.chat.completions.create({
