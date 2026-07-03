@@ -26,6 +26,11 @@ export async function AskChatBot(userMessage, botModel) {
       temperature: 1,
       max_completion_tokens: botModel.maxCompletionTokens,
       top_p: 1,
+      tools: [
+        {
+          type: "browser_search",
+        },
+      ],
     });
     return parseQuestions(res.choices[0].message.content);
   } catch (error) {
