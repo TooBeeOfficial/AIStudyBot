@@ -21,6 +21,7 @@ router.post("/chat", Auth, async (req, res) => {
     const model = req.body.model;
     const userId = req.user.id;
     const { chatId } = req.query;
+    console.log(model);
 
     if (typeof message !== "string" || message.trim() === "") {
       res
