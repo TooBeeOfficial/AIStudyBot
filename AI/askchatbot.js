@@ -6,31 +6,25 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export async function AskChatBot(userMessage, botModel) {
   if (botModel) {
-    
   }
   try {
-    const websearch = botModel.searchWeb
+    const websearch = botModel.searchWeb;
     const res = await groq.chat.completions.create({
-      'messages': [
+      messages: [
         {
           role: "system",
           content:
-            'Create a quiz with as many questions from the user input as possible, if there isn"t enough content to create a quiz get from the web as related as possible.Return ONLY valid JSON. all answers must be different and only 1 correct answer with 3 wrong answers.if there isn"t enough content to create a quiz pull someting related from the web.Use this exact format: { "questions": [ { "question": "string", "answers": ["string", "string", "string", "string"], "correct": "string" } ] }',
+            'Create a quiz from the user input; if insufficient info, use web search for related content; return ONLY valid JSON in format: {"questions":[{"question":"string","answers":["string","string","string","string"],"correct":"string"}]}; each question must have 1 correct and 3 incorrect unique answers.',
         },
         {
           role: "user",
           content: userMessage,
         },
       ],
-      'model': botModel.modelName,
-      'temperature': 1,
-      'max_completion_tokens': botModel.maxCompletionTokens,
-      'top_p': 1,
-      'tools': [
-      {
-        'type': 'browser_search',
-      },
-    ],
+      model: botModel.modelName,
+      temperature: 1,
+      max_completion_tokens: botModel.maxCompletionTokens,
+      top_p: 1,
     });
     return parseQuestions(res.choices[0].message.content);
   } catch (error) {

@@ -15,6 +15,14 @@ export default class GroqModel {
     ],
   });
 
+  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 3, {
+    compound_custom: {
+      tools: {
+        enabled_tools: ["web_search"],
+      },
+    },
+  });
+
   constructor(modelName, maxCompletionTokens, modelID, webSearch) {
     this.modelName = modelName;
     this.maxCompletionTokens = maxCompletionTokens;
@@ -26,6 +34,7 @@ export default class GroqModel {
     return [
       GroqModel.GPT_OSS_120B,
       GroqModel.GPT_OSS_20B,
+      GroqModel.GROQ_COMPOUND,
     ];
   }
 
