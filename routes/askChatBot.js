@@ -1,5 +1,5 @@
 import { AskChatBot } from "../AI/askchatbot.js";
-import GroqModel from "../models/chatbotModels.js";
+import AIModel from "../models/chatbotModels.js";
 import express from "express";
 import { rateLimit } from "express-rate-limit";
 import { Auth } from "../Utility/jwtToken.js";
@@ -36,7 +36,10 @@ router.post("/chat", Auth, async (req, res) => {
       res.status(500).json({ error: "Chat id is undefined." });
     }
 
-    const content = await AskChatBot(message, GroqModel.getModelById(model));
+    const content = await AskChatBot(message, AIModel.getModelById(model));
+    if(content.error === true){
+      return res.status(content.status).json(content.message)
+    }
     await saveQuizToDB(userId, chatId, content, message);
     return res.status(200).json(content);
   } catch (error) {

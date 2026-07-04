@@ -1,4 +1,4 @@
-import GroqModel from "./models/chatbotModels.js";
+import AIModel from "./models/chatbotModels.js";
 import passport from "passport";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

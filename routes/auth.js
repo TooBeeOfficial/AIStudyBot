@@ -12,7 +12,7 @@ import z from "zod";
 dotenv.config({});
 
 const emailSchema = z.string().email();
-
+const isProd = process.env.PROD;
 const { Pool } = pg;
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -88,9 +88,9 @@ router.get(
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      partitioned: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -120,10 +120,10 @@ router.post(
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      partitioned: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      partitioned: isProd,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
     const newUser = {
@@ -213,10 +213,10 @@ router.post("/signup", async (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    partitioned: true,
-    maxAge: 1000 * 60 * 60 * 24,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    partitioned: isProd,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
   });
   return res.status(200).json(newUser);
 });

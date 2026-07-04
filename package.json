@@ -11,6 +11,7 @@
     "author": "TooBee",
     "license": "MIT",
     "dependencies": {
+        "@cerebras/cerebras_cloud_sdk": "^1.64.1",
         "bcrypt": "^6.0.0",
         "body-parser": "^2.2.2",
         "colors": "^1.4.0",

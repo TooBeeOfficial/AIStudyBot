@@ -1,53 +1,31 @@
-export default class GroqModel {
-  static GPT_OSS_120B = new GroqModel("openai/gpt-oss-120b", 8192, 1, {
-    tools: [
-      {
-        type: "browser_search",
-      },
-    ],
-  });
+export default class AIModel {
 
-  static GPT_OSS_20B = new GroqModel("openai/gpt-oss-20b", 8192, 2, {
-    tools: [
-      {
-        type: "browser_search",
-      },
-    ],
-  });
+  static Gemma_31B = new AIModel("gemma-4-31b", 8192, 1);
+  static OpenAi_GPT_OSS = new AIModel("gpt-oss-120b", 8192, 2);
 
-  static GROQ_COMPOUND = new GroqModel("groq/compound", 1024, 3, {
-    compound_custom: {
-      tools: {
-        enabled_tools: ["web_search"],
-      },
-    },
-  });
-
-  constructor(modelName, maxCompletionTokens, modelID, webSearch) {
+  constructor(modelName, maxCompletionTokens, modelID) {
     this.modelName = modelName;
     this.maxCompletionTokens = maxCompletionTokens;
     this.id = modelID;
-    this.searchWeb = webSearch;
   }
 
   static _getAllModels() {
     return [
-      GroqModel.GPT_OSS_120B,
-      GroqModel.GPT_OSS_20B,
-      GroqModel.GROQ_COMPOUND,
+      AIModel.Gemma_31B,
+      AIModel.OpenAi_GPT_OSS,
     ];
   }
 
   static publicList(model) {
-    return GroqModel._getAllModels().map((model) => ({
+    return AIModel._getAllModels().map((model) => ({
       name: model.modelName,
       id: model.id,
     }));
   }
 
   static getModelById(id) {
-    const model = GroqModel._getAllModels().find((m) => m.id === id);
-    if (!model) return GroqModel.LLAMA_31_8B_INSTANT;
+    const model = AIModel._getAllModels().find((m) => m.id === id);
+    if (!model) return AIModel.LLAMA_31_8B_INSTANT;
     return model;
   }
 }

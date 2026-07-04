@@ -1,4 +1,4 @@
-import GroqModel from "../models/chatbotModels.js";
+import AIModel from "../models/chatbotModels.js";
 import express from "express";
 import { Auth } from "../Utility/jwtToken.js";
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.use(express.json());
 router.get("/models", Auth, async (req, res) => {
   try {
-    const content = GroqModel.publicList();
+    const content = AIModel.publicList();
     res.json(content);
   } catch (error) {
     console.error(error);
