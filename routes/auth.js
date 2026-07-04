@@ -225,9 +225,9 @@ router.post("/logout", (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      partitioned: isProd,
     });
     return res.json({ success: true });
   } catch (error) {
