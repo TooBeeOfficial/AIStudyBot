@@ -31,7 +31,7 @@ const PgStore = connectPgSimple(expressSession);
 
 app.use(
   cors({
-    origin: "http://localhost:4200",
+    origin: "https://quiz-studybuddy.netlify.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
