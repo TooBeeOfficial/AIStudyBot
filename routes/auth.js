@@ -99,7 +99,7 @@ router.get(
       email: user.email,
       name: user.name,
     };
-    res.redirect("https://quiz-studybuddy.netlify.app/login");
+    res.redirect("https://quiz-studybuddy.netlify.app/home");
   },
 );
 
