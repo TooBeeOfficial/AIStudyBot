@@ -91,11 +91,9 @@ router.get(
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
     });
-    res.setHeader(
-      "Set-Cookie",
-      `token=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`,
-    );
+
     return res.redirect("https://quiz-studybuddy.netlify.app/home");
   },
 );
@@ -120,6 +118,7 @@ router.post(
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     const newUser = {
@@ -212,6 +211,7 @@ router.post("/signup", async (req, res) => {
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24 * 7,
+    path: "/",
   });
   return res.status(200).json(newUser);
 });

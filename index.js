@@ -34,7 +34,6 @@ app.use(
   cors({
     origin: "https://quiz-studybuddy.netlify.app",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 app.use(express.static(path.join(__dirname, "public")));
