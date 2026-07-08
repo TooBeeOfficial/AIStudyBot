@@ -28,6 +28,7 @@ const pool = new Pool({
     : false,
 });
 const PgStore = connectPgSimple(expressSession);
+app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -46,10 +47,9 @@ app.use(
   }),
 );
 
-app.use(passport.authenticate("session"));
 app.use(passport.initialize());
+app.use(passport.authenticate("session"));
 app.use(passport.session());
-app.set("trust proxy", 1);
 // mount routes
 app.use("/api", utilityRoutes);
 app.use("/api", apiRoutes);
