@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import PublicUser from "../models/userModel.js";
 import z from "zod";
+import path from "node:path";
 
 dotenv.config({});
 
@@ -222,6 +223,24 @@ router.post("/logout", (req, res) => {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
+      path:"/"
+    });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path:"https://quiz-studybuddy.netlify.app"
+    });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path:"https://quiz-studybuddy.netlify.app/"
     });
     return res.json({ success: true });
   } catch (error) {
