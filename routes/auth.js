@@ -95,7 +95,7 @@ router.get(
       path: "/",
     });
 
-    return res.redirect("https://quiz-studybuddy.netlify.app/home");
+    return res.redirect("https://quiz-studybuddy.onrender.com/home");
   },
 );
 
