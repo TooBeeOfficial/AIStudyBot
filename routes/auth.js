@@ -90,7 +90,6 @@ router.get(
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-      partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -117,7 +116,6 @@ router.post(
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-      partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
 
@@ -210,7 +208,6 @@ router.post("/signup", async (req, res) => {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? "none" : "lax",
-    partitioned: isProd,
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });
   return res.status(200).json(newUser);
@@ -222,7 +219,6 @@ router.post("/logout", (req, res) => {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-      partitioned: isProd,
     });
     return res.json({ success: true });
   } catch (error) {
