@@ -92,8 +92,11 @@ router.get(
       sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     });
-
-    res.redirect("https://quiz-studybuddy.netlify.app/home");
+    res.setHeader(
+      "Set-Cookie",
+      `token=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`,
+    );
+    return res.redirect("https://quiz-studybuddy.netlify.app/home");
   },
 );
 
