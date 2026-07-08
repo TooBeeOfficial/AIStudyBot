@@ -92,6 +92,7 @@ router.get(
       sameSite: isProd ? "none" : "lax",
       partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     const newUser = {
