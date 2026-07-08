@@ -23,7 +23,7 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.post("/login/google", passport.authenticate("google"));
+router.get("/login/google", passport.authenticate("google"));
 
 passport.use(
   new GoogleOidcStrategy(
