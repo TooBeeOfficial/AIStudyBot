@@ -92,14 +92,9 @@ router.get(
       sameSite: isProd ? "none" : "lax",
       partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      path: "/",
+      path: "https://quiz-studybuddy.netlify.app",
     });
 
-    const newUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    };
     res.redirect("https://quiz-studybuddy.netlify.app/home");
   },
 );
