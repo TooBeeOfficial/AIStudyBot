@@ -32,7 +32,7 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: "https://quiz-studybuddy.netlify.app",
+    origin: "https://quiz-studybuddy.onrender.com",
     credentials: true,
   }),
 );
