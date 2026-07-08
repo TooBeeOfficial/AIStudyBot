@@ -61,5 +61,6 @@ app.use("/api", questions);
 
 app.listen(process.env.PORT, async () => {
   console.log("Server running on port: ", process.env.PORT);
+  console.log("Server is PROD?: ", isProd);
   await pool.query("SET search_path TO public");
 });
