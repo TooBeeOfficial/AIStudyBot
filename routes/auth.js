@@ -24,7 +24,10 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.get("/login/google", passport.authenticate("google"));
+router.get(
+  "/login/google",
+  passport.authenticate("google", { session: false }),
+);
 
 passport.use(
   new GoogleOidcStrategy(
@@ -77,7 +80,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google"),
+  passport.authenticate("google",),
   async (req, res) => {
     const user = req.user;
 
@@ -87,15 +90,9 @@ router.get(
       { expiresIn: "7d" },
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-      path: "/",
-    });
-
-    return res.redirect("https://quiz-studybuddy.onrender.com/home");
+    return res.redirect(
+      `https://quiz-studybuddy.onrender.com/oauth-callback?token=${encodeURIComponent(token)}`,
+    );
   },
 );
 
@@ -223,24 +220,12 @@ router.post("/logout", (req, res) => {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-      path:"/"
+      path: "/",
     });
     res.clearCookie("token", {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
-    });
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      path:"https://quiz-studybuddy.netlify.app"
-    });
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      path:"https://quiz-studybuddy.netlify.app/"
     });
     return res.json({ success: true });
   } catch (error) {
