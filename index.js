@@ -18,9 +18,9 @@ import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const isProd = process.env.PROD;
 const app = express();
 app.use(express.json());
-app.use(cookieParser());
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("sslmode=require")
@@ -44,8 +44,16 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: new PgStore({ pool }),
+    cookie:{
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      partitioned: isProd,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    }
   }),
 );
+app.use(cookieParser());
 
 app.use(passport.initialize());
 app.use(passport.authenticate("session"));

@@ -76,7 +76,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google", { session: false }),
+  passport.authenticate("google"),
   async (req, res) => {
     const user = req.user;
 
@@ -92,7 +92,6 @@ router.get(
       sameSite: isProd ? "none" : "lax",
       partitioned: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 7,
-      path: "https://quiz-studybuddy.netlify.app",
     });
 
     res.redirect("https://quiz-studybuddy.netlify.app/home");
