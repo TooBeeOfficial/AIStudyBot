@@ -24,7 +24,14 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.get("/login/google", passport.authenticate("google"));
+router.get(
+  "/login/google",
+  (req, res, next) => {
+    console.log("Before Google redirect — sessionID:", req.sessionID);
+    next();
+  },
+  passport.authenticate("google"),
+);
 
 passport.use(
   new GoogleOidcStrategy(
@@ -77,6 +84,15 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
+  (req, res, next) => {
+    console.log(
+      "On callback — sessionID:",
+      req.sessionID,
+      "session:",
+      req.session,
+    );
+    next();
+  },
   passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
