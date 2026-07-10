@@ -31,7 +31,7 @@ router.get(
     console.log("Before redirect — sessionID:", req.sessionID);
     next();
   },
-  passport.authenticate("google", { session: false, failWithError: true }),
+  passport.authenticate("google", { failWithError: true }),
 );
 
 passport.use(
@@ -39,7 +39,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/oauth2/redirect/google",
+      callbackURL: "https://aistudybot.onrender.com/api/oauth2/redirect/google",
       scope: ["profile", "email"],
     },
     async function verify(issuer, profile, cb) {
@@ -170,21 +170,16 @@ router.post("/auth/exchange", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     await pool.query("COMMIT");
 
     return res.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
     });
   } catch (err) {
     await pool.query("ROLLBACK");

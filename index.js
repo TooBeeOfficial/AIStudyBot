@@ -48,7 +48,6 @@ app.use(
 app.use(cookieParser());
 
 app.use(passport.initialize());
-app.use(passport.authenticate("session"));
 app.use(passport.session());
 // mount routes
 app.use("/api", auth);
