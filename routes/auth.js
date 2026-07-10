@@ -16,6 +16,7 @@ const emailSchema = z.string().email();
 const isProd = process.env.PROD;
 const { Pool } = pg;
 export const pool = new Pool({
+  errorLog: console.error.bind(console),
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("sslmode=require")
     ? { rejectUnauthorized: false }
@@ -26,6 +27,10 @@ const router = express.Router();
 
 router.get(
   "/login/google",
+  (req, res, next) => {
+    console.log("Before redirect — sessionID:", req.sessionID);
+    next();
+  },
   passport.authenticate("google"),
 );
 
