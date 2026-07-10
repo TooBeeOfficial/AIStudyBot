@@ -28,7 +28,8 @@ const router = express.Router();
 router.get(
   "/login/google",
   (req, res, next) => {
-    console.log("Before redirect — sessionID:", req.sessionID);
+    console.log("LOGIN SESSION:", req.sessionID);
+    console.log("LOGIN COOKIE:", req.headers.cookie);
     next();
   },
   passport.authenticate("google", { failWithError: true }),
@@ -86,11 +87,9 @@ passport.use(
 router.get(
   "/oauth2/redirect/google",
   (req, res, next) => {
-    console.log("Callback query.state:", req.query.state);
-    console.log(
-      "Session state object:",
-      JSON.stringify(req.session["openidconnect:accounts.google.com"]),
-    );
+    console.log("CALLBACK SESSION:", req.sessionID);
+    console.log("CALLBACK COOKIE:", req.headers.cookie);
+    console.log("CALLBACK SESSION DATA:", req.session);
     next();
   },
   passport.authenticate("google", { session: false, failWithError: true }),
