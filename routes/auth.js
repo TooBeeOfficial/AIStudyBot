@@ -93,7 +93,7 @@ router.get(
       const code = result.rows[0].code;
 
       return res.redirect(
-        `https://quiz-studybuddy.netlify.app/oauth-callback?code=${code}`,
+        `https://quiz-studybuddy.onrender.com/oauth-callback?code=${code}`,
       );
     } catch (err) {
       console.error(err);
