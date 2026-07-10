@@ -86,21 +86,17 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  (req, res, next) => {
+  async (req, res, next) => {
     console.log("CALLBACK SESSION ID:", req.sessionID);
     console.log("CALLBACK COOKIE:", req.headers.cookie);
     console.log("CALLBACK SESSION DATA:", req.session);
 
-    const rows = await pool.query(
-      `SELECT sid, sess FROM "session"`
-    );
+    const rows = await pool.query(`SELECT sid, sess FROM "session"`);
 
     console.log(
       rows.rows.map((r) => ({
         sid: r.sid,
-        hasOAuthState: JSON.stringify(r.sess).includes(
-          "openidconnect"
-        ),
+        hasOAuthState: JSON.stringify(r.sess).includes("openidconnect"),
       })),
     );
 
@@ -115,7 +111,6 @@ router.get(
          RETURNING code`,
         [req.user.id],
       );
-      
 
       const code = result.rows[0].code;
 
