@@ -100,10 +100,6 @@ router.get(
       return res.status(500).send("Internal server error");
     }
   },
-  (err, req, res, next) => {
-    console.error("OAuth failure:", err);
-    res.status(err.status || 500).json({ error: err.message });
-  },
 );
 
 router.post("/auth/exchange", async (req, res) => {
