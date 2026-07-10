@@ -101,6 +101,17 @@ router.get(
          RETURNING code`,
         [req.user.id],
       );
+      console.log(req.headers.cookie);
+      console.log(req.sessionID);
+
+      const rows = await pool.query("SELECT sid, sess FROM session");
+
+      console.log(
+        rows.rows.map((r) => ({
+          sid: r.sid,
+          hasOAuthState: r.sess.includes("openidconnect"),
+        })),
+      );
 
       const code = result.rows[0].code;
 
