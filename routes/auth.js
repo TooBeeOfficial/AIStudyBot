@@ -24,10 +24,7 @@ export const pool = new Pool({
 
 const router = express.Router();
 
-router.get(
-  "/login/google",
-  passport.authenticate("google", { session: false }),
-);
+router.get("/login/google", passport.authenticate("google"));
 
 passport.use(
   new GoogleOidcStrategy(
@@ -80,7 +77,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google", { session: false }),
+  passport.authenticate("google"),
   async (req, res) => {
     try {
       const result = await pool.query(
