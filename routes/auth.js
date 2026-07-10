@@ -80,21 +80,109 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google",),
+  passport.authenticate("google"),
   async (req, res) => {
-    const user = req.user;
+    try {
+      const result = await pool.query(
+        `INSERT INTO oauth_login_codes (user_id, expires_at)
+         VALUES ($1, NOW() + INTERVAL '1 minute')
+         RETURNING code`,
+        [req.user.id],
+      );
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+      const code = result.rows[0].code;
 
-    return res.redirect(
-      `https://quiz-studybuddy.onrender.com/oauth-callback?token=${encodeURIComponent(token)}`,
-    );
+      return res.redirect(
+        `https://quiz-studybuddy.netlify.app/oauth-callback?code=${code}`,
+      );
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal server error");
+    }
   },
 );
+
+router.post("/auth/exchange", async (req, res) => {
+  const { code } = req.body;
+  if (!code) {
+    return res.status(400).json({
+      error: "Missing code",
+    });
+  }
+
+  try {
+    await pool.query("BEGIN");
+
+    const codeResult = await pool.query(
+      `DELETE FROM oauth_login_codes
+       WHERE code = $1
+         AND expires_at > NOW()
+       RETURNING user_id`,
+      [code],
+    );
+
+    if (codeResult.rowCount === 0) {
+      await pool.query("ROLLBACK");
+
+      return res.status(401).json({
+        error: "Invalid or expired code",
+      });
+    }
+
+    const userResult = await pool.query(
+      `SELECT id, email, name
+       FROM users
+       WHERE id = $1`,
+      [codeResult.rows[0].user_id],
+    );
+
+    if (userResult.rowCount === 0) {
+      await pool.query("ROLLBACK");
+
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+    const user = userResult.rows[0];
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
+
+    await pool.query("COMMIT");
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (err) {
+    await pool.query("ROLLBACK");
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+});
 
 router.post(
   "/login/email",
