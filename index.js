@@ -51,11 +51,11 @@ app.use(passport.initialize());
 app.use(passport.authenticate("session"));
 app.use(passport.session());
 // mount routes
+app.use("/api", auth);
 app.use("/api", utilityRoutes);
 app.use("/api", apiRoutes);
 app.use("/api", models);
 app.use("/api", users);
-app.use("/api", auth);
 app.use("/api", questions);
 
 app.listen(process.env.PORT, async () => {
