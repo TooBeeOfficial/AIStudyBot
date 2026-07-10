@@ -77,7 +77,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google"),
+  passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
       const result = await pool.query(
@@ -96,6 +96,10 @@ router.get(
       console.error(err);
       return res.status(500).send("Internal server error");
     }
+  },
+  (err, req, res, next) => {
+    console.error("OAuth failure:", err); // log message + status
+    res.status(err.status || 500).json({ error: err.message });
   },
 );
 
