@@ -80,7 +80,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google"),
+  passport.authenticate("google", { session: false }),
   async (req, res) => {
     try {
       const result = await pool.query(
