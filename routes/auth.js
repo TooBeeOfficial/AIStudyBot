@@ -27,7 +27,16 @@ const router = express.Router();
 router.get(
   "/login/google",
   (req, res, next) => {
-    console.log("Before Google redirect — sessionID:", req.sessionID);
+    const origRedirect = res.redirect.bind(res);
+    res.redirect = (url) => {
+      console.log(
+        "Redirecting to Google — sessionID:",
+        req.sessionID,
+        "session:",
+        JSON.stringify(req.session),
+      );
+      origRedirect(url);
+    };
     next();
   },
   passport.authenticate("google"),
