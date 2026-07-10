@@ -317,11 +317,6 @@ router.post("/logout", (req, res) => {
       sameSite: isProd ? "none" : "lax",
       path: "/",
     });
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-    });
     return res.json({ success: true });
   } catch (error) {
     return res.status(500).json({ error });
