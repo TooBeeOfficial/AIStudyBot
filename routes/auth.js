@@ -26,19 +26,6 @@ const router = express.Router();
 
 router.get(
   "/login/google",
-  (req, res, next) => {
-    const origRedirect = res.redirect.bind(res);
-    res.redirect = (url) => {
-      console.log(
-        "Redirecting to Google — sessionID:",
-        req.sessionID,
-        "session:",
-        JSON.stringify(req.session),
-      );
-      origRedirect(url);
-    };
-    next();
-  },
   passport.authenticate("google"),
 );
 
@@ -93,15 +80,6 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  (req, res, next) => {
-    console.log(
-      "On callback — sessionID:",
-      req.sessionID,
-      "session:",
-      req.session,
-    );
-    next();
-  },
   passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
@@ -123,7 +101,7 @@ router.get(
     }
   },
   (err, req, res, next) => {
-    console.error("OAuth failure:", err); // log message + status
+    console.error("OAuth failure:", err);
     res.status(err.status || 500).json({ error: err.message });
   },
 );
