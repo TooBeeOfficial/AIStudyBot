@@ -31,7 +31,7 @@ router.get(
     console.log("Before redirect — sessionID:", req.sessionID);
     next();
   },
-  passport.authenticate("google"),
+  passport.authenticate("google", { session: false, failWithError: true }),
 );
 
 passport.use(

@@ -43,13 +43,6 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: new PgStore({ pool }),
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 1000 * 60 * 60 * 24 * 7,
-    },
   }),
 );
 app.use(cookieParser());
