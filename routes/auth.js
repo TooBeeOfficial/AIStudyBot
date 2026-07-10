@@ -85,6 +85,14 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
+  (req, res, next) => {
+    console.log("Callback query.state:", req.query.state);
+    console.log(
+      "Session state object:",
+      JSON.stringify(req.session["openidconnect:accounts.google.com"]),
+    );
+    next();
+  },
   passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
