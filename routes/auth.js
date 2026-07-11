@@ -114,9 +114,8 @@ router.get(
     console.log("CALLBACK SESSION CONTENTS:", JSON.stringify(req.session));
     console.log("CALLBACK QUERY STATE:", req.query.state);
     next();
-    next();
   },
-  passport.authenticate("google", { failWithError: true }),
+  passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
       const result = await pool.query(
