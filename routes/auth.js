@@ -28,7 +28,10 @@ router.get(
   "/login/google",
   passport.authenticate("google", { failWithError: true }),
 );
-
+router.use((err, req, res, next) => {
+  console.error("AUTH ERROR:", err.name, err.message, err);
+  res.status(401).json({ error: err.message });
+});
 passport.use(
   new GoogleOidcStrategy(
     {
