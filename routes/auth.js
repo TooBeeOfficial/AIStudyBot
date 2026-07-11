@@ -106,7 +106,7 @@ router.get(
     console.dir(result.rows, { depth: null });
 
     console.log(
-      rows.rows.map((r) => ({
+      result.rows.map((r) => ({
         sid: r.sid,
         hasOAuthState: JSON.stringify(r.sess).includes("openidconnect"),
       })),
