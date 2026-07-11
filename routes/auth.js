@@ -87,6 +87,7 @@ passport.use(
 router.get(
   "/oauth2/redirect/google",
   async (req, res, next) => {
+    console.log("req:", req);
     console.log("CALLBACK SESSION ID:", req.sessionID);
     console.log("CALLBACK COOKIE:", req.headers.cookie);
     console.log("CALLBACK SESSION DATA:", req.session);

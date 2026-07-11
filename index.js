@@ -34,6 +34,13 @@ app.use(
   cors({
     origin: "https://quiz-studybuddy.onrender.com",
     credentials: true,
+    cookie: {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
+    },
   }),
 );
 app.use(express.static(path.join(__dirname, "public")));
