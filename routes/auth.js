@@ -30,18 +30,6 @@ const router = express.Router();
 
 router.get(
   "/login/google",
-  (err, req, res, next) => {
-    console.error("AUTH ERROR:", err.name, err.message, err);
-    console.log("LOGIN SESSION ID:", req.sessionID);
-    res.on("finish", () => {
-      console.log(
-        "SESSION AT REDIRECT:",
-        req.sessionID,
-        JSON.stringify(req.session),
-      );
-    });
-    res.status(401).json({ error: err.message });
-  },
   passport.authenticate("google", { failWithError: true }),
 );
 
@@ -50,7 +38,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/oauth2/redirect/google",
+      callbackURL: "https://aistudybot.onrender.com/api/oauth2/redirect/google",
       scope: ["profile", "email"],
     },
     async function verify(issuer, profile, cb) {
