@@ -28,6 +28,14 @@ router.get(
   "/login/google",
   (err, req, res, next) => {
     console.error("AUTH ERROR:", err.name, err.message, err);
+    console.log("LOGIN SESSION ID:", req.sessionID);
+    res.on("finish", () => {
+      console.log(
+        "SESSION AT REDIRECT:",
+        req.sessionID,
+        JSON.stringify(req.session),
+      );
+    });
     res.status(401).json({ error: err.message });
   },
   passport.authenticate("google", { failWithError: true }),
@@ -97,6 +105,13 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
+  (req, res, next) => {
+    console.log("CALLBACK SESSION ID:", req.sessionID);
+    console.log("CALLBACK SESSION CONTENTS:", JSON.stringify(req.session));
+    console.log("CALLBACK QUERY STATE:", req.query.state);
+    next();
+    next();
+  },
   passport.authenticate("google", { failWithError: true }),
   async (req, res) => {
     try {
