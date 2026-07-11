@@ -91,8 +91,19 @@ router.get(
     console.log("CALLBACK SESSION ID:", req.sessionID);
     console.log("CALLBACK COOKIE:", req.headers.cookie);
     console.log("CALLBACK SESSION DATA:", req.session);
+    console.log("Session ID:", req.sessionID);
+    console.log(
+      "Session state:",
+      req.session["openidconnect:accounts.google.com"],
+    );
+    console.log("Query state:", req.query.state);
 
-    const rows = await pool.query(`SELECT sid, sess FROM "session"`);
+    const result = await pool.query(
+      'SELECT sid, sess FROM "session" WHERE sid = $1',
+      [req.sessionID],
+    );
+
+    console.dir(result.rows, { depth: null });
 
     console.log(
       rows.rows.map((r) => ({
