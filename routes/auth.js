@@ -109,31 +109,20 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  (req, res, next) => {
-    console.log("CALLBACK SESSION ID:", req.sessionID);
-    console.log("CALLBACK SESSION CONTENTS:", JSON.stringify(req.session));
-    console.log("CALLBACK QUERY STATE:", req.query.state);
-    next();
-  },
   passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
-    try {
-      const result = await pool.query(
-        `INSERT INTO oauth_login_codes (user_id, expires_at)
+    const result = await pool.query(
+      `INSERT INTO oauth_login_codes (user_id, expires_at)
          VALUES ($1, NOW() + INTERVAL '1 minute')
          RETURNING code`,
-        [req.user.id],
-      );
+      [req.user.id],
+    );
 
-      const code = result.rows[0].code;
+    const code = result.rows[0].code;
 
-      return res.redirect(
-        `https://quiz-studybuddy.onrender.com/oauth-callback?code=${code}`,
-      );
-    } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal server error");
-    }
+    res.redirect(
+      `https://quiz-studybuddy.onrender.com/oauth-callback?code=${code}`,
+    );
   },
 );
 
