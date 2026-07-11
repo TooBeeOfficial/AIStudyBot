@@ -16,7 +16,6 @@ const emailSchema = z.string().email();
 const isProd = process.env.PROD;
 const { Pool } = pg;
 export const pool = new Pool({
-  errorLog: console.error.bind(console),
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL?.includes("sslmode=require")
     ? { rejectUnauthorized: false }
@@ -27,24 +26,6 @@ const router = express.Router();
 
 router.get(
   "/login/google",
-  (req, res, next) => {
-    console.log("LOGIN SESSION:", req.sessionID);
-    console.log("LOGIN COOKIE:", req.headers.cookie);
-    console.log("LOGIN SID:", req.sessionID);
-
-    req.session.save(async (err) => {
-      if (err) return next(err);
-
-      const result = await pool.query(
-        'SELECT sid FROM "session" WHERE sid = $1',
-        [req.sessionID],
-      );
-
-      console.log("Saved row:", result.rows);
-
-      next();
-    });
-  },
   passport.authenticate("google", { failWithError: true }),
 );
 
@@ -57,41 +38,54 @@ passport.use(
       scope: ["profile", "email"],
     },
     async function verify(issuer, profile, cb) {
+      const client = await pool.connect();
       try {
-        const credResult = await pool.query(
+        await client.query("BEGIN");
+
+        const credResult = await client.query(
           "SELECT * FROM federated_credentials WHERE provider = $1 AND subject = $2",
           [issuer, profile.id],
         );
+
         let user;
-
-        if (credResult.rows.length === 0) {
-          const email = profile.emails?.[0]?.value;
-
-          const userResult = await pool.query(
-            "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email",
-            [profile.displayName, email],
-          );
-
-          const newUser = userResult.rows[0];
-
-          await pool.query(
-            "INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1, $2, $3)",
-            [newUser.id, issuer, profile.id],
-          );
-
-          user = newUser;
-        } else {
-          const userResult = await pool.query(
+        if (credResult.rows.length > 0) {
+          const userResult = await client.query(
             "SELECT * FROM users WHERE id = $1",
             [credResult.rows[0].user_id],
           );
+          user = userResult.rows[0];
+        } else {
+          const email = profile.emails?.[0]?.value;
+
+          let userResult = await client.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email],
+          );
+
+          if (userResult.rows.length === 0) {
+            userResult = await client.query(
+              "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email",
+              [profile.displayName, email],
+            );
+          }
 
           user = userResult.rows[0];
+
+          await client.query(
+            `INSERT INTO federated_credentials (user_id, provider, subject)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (provider, subject) DO NOTHING`,
+            [user.id, issuer, profile.id],
+          );
         }
 
+        await client.query("COMMIT");
         return cb(null, user);
       } catch (err) {
+        await client.query("ROLLBACK");
         return cb(err);
+      } finally {
+        client.release();
       }
     },
   ),
@@ -99,34 +93,6 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  async (req, res, next) => {
-    console.log("req:", req);
-    console.log("CALLBACK SESSION ID:", req.sessionID);
-    console.log("CALLBACK COOKIE:", req.headers.cookie);
-    console.log("CALLBACK SESSION DATA:", req.session);
-    console.log("Session ID:", req.sessionID);
-    console.log(
-      "Session state:",
-      req.session["openidconnect:accounts.google.com"],
-    );
-    console.log("Query state:", req.query.state);
-
-    const result = await pool.query(
-      'SELECT sid, sess FROM "session" WHERE sid = $1',
-      [req.sessionID],
-    );
-
-    console.dir(result.rows, { depth: null });
-
-    console.log(
-      result.rows.map((r) => ({
-        sid: r.sid,
-        hasOAuthState: JSON.stringify(r.sess).includes("openidconnect"),
-      })),
-    );
-
-    next();
-  },
   passport.authenticate("google", { session: false, failWithError: true }),
   async (req, res) => {
     try {
