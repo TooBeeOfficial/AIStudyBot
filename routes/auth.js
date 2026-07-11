@@ -30,7 +30,20 @@ router.get(
   (req, res, next) => {
     console.log("LOGIN SESSION:", req.sessionID);
     console.log("LOGIN COOKIE:", req.headers.cookie);
-    next();
+    console.log("LOGIN SID:", req.sessionID);
+
+    req.session.save(async (err) => {
+      if (err) return next(err);
+
+      const result = await pool.query(
+        'SELECT sid FROM "session" WHERE sid = $1',
+        [req.sessionID],
+      );
+
+      console.log("Saved row:", result.rows);
+
+      next();
+    });
   },
   passport.authenticate("google", { failWithError: true }),
 );
