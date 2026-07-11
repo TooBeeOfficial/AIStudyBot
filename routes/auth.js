@@ -1,5 +1,5 @@
 import express from "express";
-import * as passport from "passport";
+import passport from "passport";
 import GoogleOidcStrategy from "passport-google-oidc";
 import LocalStrategy from "passport-local";
 import pg from "pg";
