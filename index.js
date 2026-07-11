@@ -27,6 +27,9 @@ const pool = new Pool({
     ? { rejectUnauthorized: false }
     : false,
 });
+pool.on("error", (err) => {
+  console.error("SESSION STORE ERROR:", err);
+});
 const PgStore = connectPgSimple(expressSession);
 app.set("trust proxy", 1);
 

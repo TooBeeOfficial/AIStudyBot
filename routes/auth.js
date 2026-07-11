@@ -22,6 +22,10 @@ export const pool = new Pool({
     : false,
 });
 
+pool.on("error", (err) => {
+  console.error("SESSION STORE ERROR:", err);
+});
+
 const router = express.Router();
 
 router.get(
