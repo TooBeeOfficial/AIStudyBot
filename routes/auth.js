@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "passport";
+import * as passport from "passport";
 import GoogleOidcStrategy from "passport-google-oidc";
 import LocalStrategy from "passport-local";
 import pg from "pg";
@@ -26,18 +26,19 @@ const router = express.Router();
 
 router.get(
   "/login/google",
+  (err, req, res, next) => {
+    console.error("AUTH ERROR:", err.name, err.message, err);
+    res.status(401).json({ error: err.message });
+  },
   passport.authenticate("google", { failWithError: true }),
 );
-router.use((err, req, res, next) => {
-  console.error("AUTH ERROR:", err.name, err.message, err);
-  res.status(401).json({ error: err.message });
-});
+
 passport.use(
   new GoogleOidcStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://aistudybot.onrender.com/api/oauth2/redirect/google",
+      callbackURL: "/api/oauth2/redirect/google",
       scope: ["profile", "email"],
     },
     async function verify(issuer, profile, cb) {
@@ -96,7 +97,7 @@ passport.use(
 
 router.get(
   "/oauth2/redirect/google",
-  passport.authenticate("google", { session: false, failWithError: true }),
+  passport.authenticate("google", { failWithError: true }),
   async (req, res) => {
     try {
       const result = await pool.query(
