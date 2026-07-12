@@ -35,7 +35,7 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: "https://quiz-studybuddy.onrender.com",
+    origin: isProd === "true" ? "https://quiz-studybuddy.onrender.com" : "http://localhost:4200",
     credentials: true,
   }),
 );
@@ -48,8 +48,8 @@ app.use(
     store: new PgStore({ pool }),
     cookie: {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: isProd === "true",
+      sameSite: isProd === "true" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
       path: "/",
     },

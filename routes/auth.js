@@ -38,7 +38,10 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "https://aistudybot.onrender.com/api/oauth2/redirect/google",
+      callbackURL:
+        isProd === "true"
+          ? "https://quiz-studybuddy.onrender.com/api/oauth2/redirect/google"
+          : "http://localhost:4200/api/oauth2/redirect/google",
       scope: ["profile", "email"],
     },
     async function verify(issuer, profile, cb) {
@@ -75,6 +78,11 @@ passport.use(
 
           user = userResult.rows[0];
 
+          const chats = await pool.query(
+            "INSERT INTO chats (user_id) VALUES ($1) RETURNING id",
+            [user.id],
+          );
+
           await client.query(
             `INSERT INTO federated_credentials (user_id, provider, subject)
             VALUES ($1, $2, $3)
@@ -109,7 +117,9 @@ router.get(
     const code = result.rows[0].code;
 
     res.redirect(
-      `https://quiz-studybuddy.onrender.com/oauth-callback?code=${code}`,
+      isProd === "true"
+        ? `https://quiz-studybuddy.onrender.com/oauth-callback?code=${code}`
+        : `http://localhost:4200/oauth-callback?code=${code}`,
     );
   },
 );
@@ -169,8 +179,8 @@ router.post("/auth/exchange", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: isProd === "true",
+      sameSite: isProd === "true" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
       path: "/",
     });
@@ -208,8 +218,8 @@ router.post(
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: isProd === "true",
+      sameSite: isProd === "true" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
       path: "/",
     });
@@ -274,47 +284,59 @@ passport.use(
 );
 
 router.post("/signup", async (req, res) => {
-  const user = req.body;
+  try {
+    const user = req.body;
 
-  const userMatches = await pool.query("SELECT * FROM users WHERE email = $1", [
-    user.email,
-  ]);
-  if (userMatches.rowCount !== 0) {
-    return res.status(401).json({ failed: "User already exists!" });
+    const userMatches = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [user.email],
+    );
+    if (userMatches.rowCount !== 0) {
+      return res.status(401).json({ failed: "User already exists!" });
+    }
+
+    const userResult = await pool.query(
+      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
+      [user.name, user.email, await bcrypt.hash(user.password, 10)],
+    );
+
+    const newUser = userResult.rows[0];
+
+    const chats = await pool.query(
+      "INSERT INTO chats (user_id) VALUES ($1) RETURNING id",
+      [newUser.id],
+    );
+
+    const token = jwt.sign(
+      {
+        id: newUser.id,
+        email: newUser.email,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd === "true",
+      sameSite: isProd === "true" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+      path: "/",
+    });
+    return res.status(200).json(newUser);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: true, message: "Internal Server Error!" });
   }
-
-  const userResult = await pool.query(
-    "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email",
-    [user.name, user.email, await bcrypt.hash(user.password, 10)],
-  );
-
-  const newUser = userResult.rows[0];
-
-  const token = jwt.sign(
-    {
-      id: newUser.id,
-      email: newUser.email,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" },
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    path: "/",
-  });
-  return res.status(200).json(newUser);
 });
 
 router.post("/logout", (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: isProd === "true",
+      sameSite: isProd === "true" ? "none" : "lax",
       path: "/",
     });
     return res.json({ success: true });
